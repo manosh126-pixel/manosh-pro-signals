@@ -243,6 +243,15 @@ def fetch_live_price(selected_asset):
             return fallback.get(selected_asset, 1.1000)
 
     elif "BTC" in selected_asset:
+        # Tier 1: Coinbase BTC/USD Spot API
+        try:
+            req = urllib.request.Request("https://api.coinbase.com/v2/prices/BTC-USD/spot", headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return round(float(data["data"]["amount"]), 2)
+        except Exception:
+            pass
+        # Tier 2: Binance Fallback
         try:
             req = urllib.request.Request("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=3) as resp:
@@ -376,7 +385,7 @@ symbol_map = {
     "GOLD (XAU/USD)": "OANDA:XAUUSD",
     "EUR/USD": "FX:EURUSD",
     "GBP/USD": "FX:GBPUSD",
-    "BTC/USD": "BINANCE:BTCUSDT",
+    "BTC/USD": "COINBASE:BTCUSD",
 }
 tv_symbol = symbol_map.get(asset, "OANDA:XAUUSD")
 
